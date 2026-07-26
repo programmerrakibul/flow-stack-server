@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ES2023",
+    "esModuleInterop": true,
+    "ignoreDeprecations": "6.0",
+
+    "types": ["cors", "express", "node"],
+
+    "strictNullChecks": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+
+    "strict": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "noUncheckedSideEffectImports": true,
+    "moduleDetection": "force",
+    "skipLibCheck": true,
+
+    "paths": {
+      "@/*": ["./src/*", "./src/modules/*"]
+    }
+  },
+
+  "include": ["src/**/*.ts"],
+  "exclude": ["prisma.config.ts", "node_modules", "dist"]
+}

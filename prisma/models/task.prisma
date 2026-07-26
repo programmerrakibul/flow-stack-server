@@ -1,0 +1,30 @@
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum Status {
+  TODO
+  IN_PROGRESS
+  COMPLETED
+}
+
+model Task {
+  id          String   @id @default(uuid()) @db.Uuid
+  title       String   @db.VarChar(255)
+  description String
+  priority    Priority @default(LOW)
+  status      Status   @default(TODO)
+
+  creatorId String @db.Uuid
+  creator   User   @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([title])
+  @@index([status, priority])
+  @@index([creatorId, status])
+  @@map("tasks")
+}
