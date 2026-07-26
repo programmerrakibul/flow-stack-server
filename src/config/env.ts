@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { UnprocessableEntityError } from "http-errors-enhanced";
-import { z } from "zod";
+import z from "zod";
 
 export const NODE_ENV = {
   DEVELOPMENT: "development",
@@ -17,6 +17,11 @@ const envSchema = z.object({
     .min(1, "DATABASE_URL is required"),
 
   PORT: z.coerce.number().default(8000),
+
+  SESSION_SECRET: z
+    .string("SESSION_SECRET is required")
+    .trim()
+    .min(1, "SESSION_SECRET is required"),
 });
 
 export const getEnv = () => {

@@ -1,6 +1,8 @@
 import { type Express, type Request, type Response } from "express";
 import { status } from "http-status";
 
+import authRouter from "@/auth/routes/auth";
+import { globalErrorHandler } from "@/shared/middlewares/global-error-handler";
 import sendResponse from "@/shared/utils/sendResponse";
 
 const API_PREFIX = "/api/v1" as const;
@@ -11,6 +13,10 @@ const mountedRoutes = (app: Express) => {
       message: "Welcome to Flowstack API",
     });
   });
+
+  app.use(`${API_PREFIX}/auth`, authRouter);
+
+  app.use(globalErrorHandler);
 };
 
 export default mountedRoutes;

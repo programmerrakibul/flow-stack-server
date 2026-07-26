@@ -10,6 +10,7 @@
     "ignoreDeprecations": "6.0",
 
     "types": ["cors", "express", "node"],
+    "typeRoots": ["node_modules/@types/", "./src/types/"],
 
     "strictNullChecks": true,
     "noUncheckedIndexedAccess": true,

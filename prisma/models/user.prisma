@@ -3,6 +3,10 @@ enum Role {
   USER
 }
 
+enum Provider {
+  CREDENTIALS
+}
+
 model User {
   id            String  @id @default(uuid()) @db.Uuid
   name          String  @db.VarChar(255)
@@ -10,10 +14,10 @@ model User {
   image         String?
   emailVerified Boolean @default(false)
   role          Role    @default(USER)
-  password      String  @db.VarChar(255)
+  isActive      Boolean @default(true)
 
-  sessions Session[]
   tasks    Task[]
+  account Account?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -26,18 +30,31 @@ model User {
 }
 
 model Session {
-  id   String @id @default(uuid()) @db.Uuid
+  id   String @id
   sid  String @unique @db.VarChar(255)
   data String @db.Text
-
-  userId String? @db.Uuid
-  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   expiresAt DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([expiresAt])
-  @@index([userId])
   @@map("sessions")
+}
+
+
+model Account {
+  id String @id @default(uuid()) @db.Uuid
+
+  password      String  @db.VarChar(255)
+  provider     Provider
+
+  userId String @unique @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("accounts")
 }
