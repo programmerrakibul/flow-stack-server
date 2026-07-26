@@ -1,6 +1,7 @@
 # Flow Stack Server
 
-A production-ready REST API built with TypeScript, Express 5, Prisma 7, and PostgreSQL using domain-driven modular architecture.
+A production-ready REST API built with TypeScript, Express 5, Prisma 7, and
+PostgreSQL using domain-driven modular architecture.
 
 ## Features
 
@@ -31,12 +32,12 @@ SESSION_SECRET=your-super-secret-session-key
 
 ### Variable Descriptions
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| NODE_ENV | No | `development` | Environment mode (`development`, `test`, `production`) |
-| DATABASE_URL | Yes | - | PostgreSQL connection string |
-| PORT | No | `8000` | Server listening port |
-| SESSION_SECRET | Yes | - | Secret for signing session cookies |
+| Variable       | Required | Default       | Description                                            |
+| -------------- | -------- | ------------- | ------------------------------------------------------ |
+| NODE_ENV       | No       | `development` | Environment mode (`development`, `test`, `production`) |
+| DATABASE_URL   | Yes      | -             | PostgreSQL connection string                           |
+| PORT           | No       | `8000`        | Server listening port                                  |
+| SESSION_SECRET | Yes      | -             | Secret for signing session cookies                     |
 
 ## Getting Started
 
@@ -102,31 +103,34 @@ flow-stack-server/
 ## API Overview
 
 ### Authentication
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/auth/sign-up` | Register new user |
-| POST | `/api/v1/auth/sign-in` | Login |
-| POST | `/api/v1/auth/sign-out` | Logout |
-| GET | `/api/v1/auth/profile` | Get profile |
+
+| Method | Endpoint                | Description       |
+| ------ | ----------------------- | ----------------- |
+| POST   | `/api/v1/auth/sign-up`  | Register new user |
+| POST   | `/api/v1/auth/sign-in`  | Login             |
+| POST   | `/api/v1/auth/sign-out` | Logout            |
+| GET    | `/api/v1/auth/profile`  | Get profile       |
 
 ### Tasks
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/tasks` | Create task |
-| GET | `/api/v1/tasks` | List tasks (filtered) |
-| GET | `/api/v1/tasks/:id` | Get task |
-| PATCH | `/api/v1/tasks/:id` | Update task |
-| PATCH | `/api/v1/tasks/:id/status` | Update status |
-| DELETE | `/api/v1/tasks/:id` | Delete task |
+
+| Method | Endpoint                   | Description           |
+| ------ | -------------------------- | --------------------- |
+| POST   | `/api/v1/tasks`            | Create task           |
+| GET    | `/api/v1/tasks`            | List tasks (filtered) |
+| GET    | `/api/v1/tasks/:id`        | Get task              |
+| PATCH  | `/api/v1/tasks/:id`        | Update task           |
+| PATCH  | `/api/v1/tasks/:id/status` | Update status         |
+| DELETE | `/api/v1/tasks/:id`        | Delete task           |
 
 ### Dashboard
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/dashboard/user` | User dashboard |
-| GET | `/api/v1/dashboard/admin` | Admin dashboard |
-| GET | `/api/v1/dashboard/admin/users` | List users |
-| PATCH | `/api/v1/dashboard/admin/users/:id/toggle-active` | Toggle user |
-| DELETE | `/api/v1/dashboard/admin/users/:id` | Delete user |
+
+| Method | Endpoint                                          | Description     |
+| ------ | ------------------------------------------------- | --------------- |
+| GET    | `/api/v1/dashboard/user`                          | User dashboard  |
+| GET    | `/api/v1/dashboard/admin`                         | Admin dashboard |
+| GET    | `/api/v1/dashboard/admin/users`                   | List users      |
+| PATCH  | `/api/v1/dashboard/admin/users/:id/toggle-active` | Toggle user     |
+| DELETE | `/api/v1/dashboard/admin/users/:id`               | Delete user     |
 
 For detailed API documentation, see [ENDPOINTS.md](./ENDPOINTS.md).
 
@@ -143,6 +147,7 @@ pnpm start        # Start production server
 ### Architecture
 
 This project follows **Domain-Driven Modular Architecture** with:
+
 - **Controller-Service separation** (thin controllers, fat services)
 - **Shared module** for cross-cutting concerns
 - **Zod validation** for all inputs

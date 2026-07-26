@@ -3,6 +3,7 @@
 Base URL: `http://localhost:8000/api/v1`
 
 All responses follow the format:
+
 ```json
 {
   "success": true | false,
@@ -21,6 +22,7 @@ All responses follow the format:
 Register a new user.
 
 **Request Body:**
+
 ```json
 {
   "name": "string (3-50 chars)",
@@ -31,6 +33,7 @@ Register a new user.
 ```
 
 **Response (201):**
+
 ```json
 {
   "success": true,
@@ -56,6 +59,7 @@ Register a new user.
 Authenticate an existing user.
 
 **Request Body:**
+
 ```json
 {
   "email": "string",
@@ -64,6 +68,7 @@ Authenticate an existing user.
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -91,6 +96,7 @@ Destroy the current session.
 **Headers:** `Cookie: flow_stack_sid=<session_id>`
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -107,6 +113,7 @@ Get the current authenticated user's profile.
 **Headers:** `Cookie: flow_stack_sid=<session_id>`
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -138,6 +145,7 @@ Create a new task.
 **Headers:** `Cookie: flow_stack_sid=<session_id>`
 
 **Request Body:**
+
 ```json
 {
   "title": "string (3-255 chars)",
@@ -147,6 +155,7 @@ Create a new task.
 ```
 
 **Response (201):**
+
 ```json
 {
   "success": true,
@@ -174,22 +183,22 @@ Create a new task.
 
 ### GET `/tasks`
 
-List tasks with filtering, search, and pagination. Users see only their own tasks. Admins see all tasks.
+List tasks with filtering, search, and pagination. Users see only their own
+tasks. Admins see all tasks.
 
 **Headers:** `Cookie: flow_stack_sid=<session_id>`
 
-**Query Parameters:**
-| Param | Type | Description |
-|-------|------|-------------|
-| page | string | Page number (default: 1) |
-| limit | string | Items per page (default: 10, max: 100) |
-| search | string | Case-insensitive title search |
-| status | string | Filter by status: `TODO`, `IN_PROGRESS`, `COMPLETED` |
-| priority | string | Filter by priority: `LOW`, `MEDIUM`, `HIGH` |
-| sortBy | string | Sort field: `createdAt`, `updatedAt`, `priority`, `status`, `title` |
-| sortOrder | string | `asc` or `desc` (default: `desc`) |
+**Query Parameters:** | Param | Type | Description |
+|-------|------|-------------| | page | string | Page number (default: 1) | |
+limit | string | Items per page (default: 10, max: 100) | | search | string |
+Case-insensitive title search | | status | string | Filter by status: `TODO`,
+`IN_PROGRESS`, `COMPLETED` | | priority | string | Filter by priority: `LOW`,
+`MEDIUM`, `HIGH` | | sortBy | string | Sort field: `createdAt`, `updatedAt`,
+`priority`, `status`, `title` | | sortOrder | string | `asc` or `desc` (default:
+`desc`) |
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -227,11 +236,13 @@ List tasks with filtering, search, and pagination. Users see only their own task
 
 ### GET `/tasks/:id`
 
-Get a single task by ID. Users can only access their own tasks. Admins can access any task.
+Get a single task by ID. Users can only access their own tasks. Admins can
+access any task.
 
 **Headers:** `Cookie: flow_stack_sid=<session_id>`
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -259,11 +270,13 @@ Get a single task by ID. Users can only access their own tasks. Admins can acces
 
 ### PATCH `/tasks/:id`
 
-Update task details. Only the task owner can update. Completed tasks cannot be updated.
+Update task details. Only the task owner can update. Completed tasks cannot be
+updated.
 
 **Headers:** `Cookie: flow_stack_sid=<session_id>`
 
 **Request Body:**
+
 ```json
 {
   "title": "string (optional, 3-255 chars)",
@@ -273,11 +286,14 @@ Update task details. Only the task owner can update. Completed tasks cannot be u
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
   "message": "Task updated successfully",
-  "data": { /* updated task with creator */ }
+  "data": {
+    /* updated task with creator */
+  }
 }
 ```
 
@@ -285,11 +301,13 @@ Update task details. Only the task owner can update. Completed tasks cannot be u
 
 ### PATCH `/tasks/:id/status`
 
-Update task status. Only the task owner can update. Completed tasks cannot have their status changed.
+Update task status. Only the task owner can update. Completed tasks cannot have
+their status changed.
 
 **Headers:** `Cookie: flow_stack_sid=<session_id>`
 
 **Request Body:**
+
 ```json
 {
   "status": "TODO | IN_PROGRESS | COMPLETED"
@@ -297,11 +315,14 @@ Update task status. Only the task owner can update. Completed tasks cannot have 
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
   "message": "Task status updated successfully",
-  "data": { /* updated task with creator */ }
+  "data": {
+    /* updated task with creator */
+  }
 }
 ```
 
@@ -309,11 +330,13 @@ Update task status. Only the task owner can update. Completed tasks cannot have 
 
 ### DELETE `/tasks/:id`
 
-Delete a task. Task owners can delete their own tasks. Admins can delete any task.
+Delete a task. Task owners can delete their own tasks. Admins can delete any
+task.
 
 **Headers:** `Cookie: flow_stack_sid=<session_id>`
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -334,6 +357,7 @@ Get dashboard statistics for the authenticated user (last 30 days).
 **Headers:** `Cookie: flow_stack_sid=<session_id>`
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -375,6 +399,7 @@ Get system-wide dashboard statistics (admin only, last 30 days).
 **Authorization:** Requires `ADMIN` role.
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -430,14 +455,13 @@ List all users with pagination and search (admin only).
 
 **Authorization:** Requires `ADMIN` role.
 
-**Query Parameters:**
-| Param | Type | Description |
-|-------|------|-------------|
-| page | string | Page number (default: 1) |
-| limit | string | Items per page (default: 10, max: 100) |
-| search | string | Case-insensitive name/email search |
+**Query Parameters:** | Param | Type | Description |
+|-------|------|-------------| | page | string | Page number (default: 1) | |
+limit | string | Items per page (default: 10, max: 100) | | search | string |
+Case-insensitive name/email search |
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -477,6 +501,7 @@ Toggle a user's active status (admin only).
 **Authorization:** Requires `ADMIN` role.
 
 **Request Body:**
+
 ```json
 {
   "isActive": true | false
@@ -484,6 +509,7 @@ Toggle a user's active status (admin only).
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -509,6 +535,7 @@ Delete a user (admin only).
 **Authorization:** Requires `ADMIN` role.
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -529,12 +556,8 @@ All errors follow this format:
 }
 ```
 
-**Common HTTP Status Codes:**
-| Code | Description |
-|------|-------------|
-| 401 | Unauthorized - No session or invalid credentials |
-| 403 | Forbidden - Insufficient permissions |
-| 404 | Not Found - Resource does not exist |
-| 409 | Conflict - Resource already exists (e.g., duplicate email) |
-| 422 | Unprocessable Entity - Validation error |
-| 500 | Internal Server Error |
+**Common HTTP Status Codes:** | Code | Description | |------|-------------| |
+401 | Unauthorized - No session or invalid credentials | | 403 | Forbidden -
+Insufficient permissions | | 404 | Not Found - Resource does not exist | | 409 |
+Conflict - Resource already exists (e.g., duplicate email) | | 422 |
+Unprocessable Entity - Validation error | | 500 | Internal Server Error |
