@@ -1,10 +1,10 @@
+import { PrismaSessionStore } from "@quixo3/prisma-session-store";
 import cors from "cors";
 import express from "express";
 import expressSession from "express-session";
 
 import { getEnv, NODE_ENV } from "@/config/env";
 import prisma from "@/config/prisma";
-import { PrismaSessionStore } from "@quixo3/prisma-session-store";
 import mountedRoutes from "./mounted-routes";
 
 const app = express();
