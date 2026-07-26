@@ -4,6 +4,7 @@ import status from "http-status";
 
 import { getEnv, NODE_ENV } from "@/config/env";
 import sendResponse from "@/shared/utils/sendResponse";
+import { ZodError } from "zod";
 
 const env = getEnv();
 
@@ -23,6 +24,11 @@ export const globalErrorHandler = (
   if (err instanceof HttpError) {
     statusCode = err.statusCode;
     message = err.message;
+  }
+
+  if (err instanceof ZodError) {
+    message = err.issues.map((issue) => issue.message).join(", ");
+    statusCode = status.UNPROCESSABLE_ENTITY as number;
   }
 
   sendResponse.error(res, statusCode, message);
