@@ -19,7 +19,7 @@ All responses follow the format:
 
 ### POST `/auth/sign-up`
 
-Register a new user.
+Register a new user. Returns access and refresh tokens in HttpOnly cookies.
 
 **Request Body:**
 
@@ -56,7 +56,7 @@ Register a new user.
 
 ### POST `/auth/sign-in`
 
-Authenticate an existing user.
+Authenticate an existing user. Returns access and refresh tokens in HttpOnly cookies.
 
 **Request Body:**
 
@@ -91,9 +91,7 @@ Authenticate an existing user.
 
 ### POST `/auth/sign-out`
 
-Destroy the current session.
-
-**Headers:** `Cookie: flow_stack_sid=<session_id>`
+Clear all authentication cookies.
 
 **Response (200):**
 
@@ -106,11 +104,27 @@ Destroy the current session.
 
 ---
 
+### POST `/auth/refresh-token`
+
+Refresh access and refresh tokens using the refresh token cookie.
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "message": "Token refreshed successfully",
+  "data": null
+}
+```
+
+---
+
 ### GET `/auth/profile`
 
 Get the current authenticated user's profile.
 
-**Headers:** `Cookie: flow_stack_sid=<session_id>`
+**Headers:** `Cookie: access_token=<token>`
 
 **Response (200):**
 
@@ -136,13 +150,13 @@ Get the current authenticated user's profile.
 
 ## Tasks
 
-All task endpoints require authentication via session cookie.
+All task endpoints require authentication via access token cookie.
 
 ### POST `/tasks`
 
 Create a new task.
 
-**Headers:** `Cookie: flow_stack_sid=<session_id>`
+**Headers:** `Cookie: access_token=<token>`
 
 **Request Body:**
 
@@ -168,13 +182,7 @@ Create a new task.
     "status": "TODO",
     "creatorId": "uuid",
     "createdAt": "datetime",
-    "updatedAt": "datetime",
-    "creator": {
-      "id": "uuid",
-      "name": "string",
-      "email": "string",
-      "role": "USER"
-    }
+    "updatedAt": "datetime"
   }
 }
 ```
@@ -186,7 +194,7 @@ Create a new task.
 List tasks with filtering, search, and pagination. Users see only their own
 tasks. Admins see all tasks.
 
-**Headers:** `Cookie: flow_stack_sid=<session_id>`
+**Headers:** `Cookie: access_token=<token>`
 
 **Query Parameters:** | Param | Type | Description |
 |-------|------|-------------| | page | string | Page number (default: 1) | |
@@ -212,13 +220,7 @@ Case-insensitive title search | | status | string | Filter by status: `TODO`,
       "status": "TODO",
       "creatorId": "uuid",
       "createdAt": "datetime",
-      "updatedAt": "datetime",
-      "creator": {
-        "id": "uuid",
-        "name": "string",
-        "email": "string",
-        "role": "USER"
-      }
+      "updatedAt": "datetime"
     }
   ],
   "pagination": {
@@ -239,7 +241,7 @@ Case-insensitive title search | | status | string | Filter by status: `TODO`,
 Get a single task by ID. Users can only access their own tasks. Admins can
 access any task.
 
-**Headers:** `Cookie: flow_stack_sid=<session_id>`
+**Headers:** `Cookie: access_token=<token>`
 
 **Response (200):**
 
@@ -259,8 +261,7 @@ access any task.
     "creator": {
       "id": "uuid",
       "name": "string",
-      "email": "string",
-      "role": "USER"
+      "email": "string"
     }
   }
 }
@@ -273,7 +274,7 @@ access any task.
 Update task details. Only the task owner can update. Completed tasks cannot be
 updated.
 
-**Headers:** `Cookie: flow_stack_sid=<session_id>`
+**Headers:** `Cookie: access_token=<token>`
 
 **Request Body:**
 
@@ -292,7 +293,7 @@ updated.
   "success": true,
   "message": "Task updated successfully",
   "data": {
-    /* updated task with creator */
+    /* updated task */
   }
 }
 ```
@@ -304,7 +305,7 @@ updated.
 Update task status. Only the task owner can update. Completed tasks cannot have
 their status changed.
 
-**Headers:** `Cookie: flow_stack_sid=<session_id>`
+**Headers:** `Cookie: access_token=<token>`
 
 **Request Body:**
 
@@ -321,7 +322,7 @@ their status changed.
   "success": true,
   "message": "Task status updated successfully",
   "data": {
-    /* updated task with creator */
+    /* updated task */
   }
 }
 ```
@@ -333,7 +334,7 @@ their status changed.
 Delete a task. Task owners can delete their own tasks. Admins can delete any
 task.
 
-**Headers:** `Cookie: flow_stack_sid=<session_id>`
+**Headers:** `Cookie: access_token=<token>`
 
 **Response (200):**
 
@@ -348,13 +349,13 @@ task.
 
 ## Dashboard
 
-All dashboard endpoints require authentication via session cookie.
+All dashboard endpoints require authentication via access token cookie.
 
 ### GET `/dashboard/user`
 
 Get dashboard statistics for the authenticated user (last 30 days).
 
-**Headers:** `Cookie: flow_stack_sid=<session_id>`
+**Headers:** `Cookie: access_token=<token>`
 
 **Response (200):**
 
@@ -394,7 +395,7 @@ Get dashboard statistics for the authenticated user (last 30 days).
 
 Get system-wide dashboard statistics (admin only, last 30 days).
 
-**Headers:** `Cookie: flow_stack_sid=<session_id>`
+**Headers:** `Cookie: access_token=<token>`
 
 **Authorization:** Requires `ADMIN` role.
 
@@ -451,7 +452,7 @@ Get system-wide dashboard statistics (admin only, last 30 days).
 
 List all users with pagination and search (admin only).
 
-**Headers:** `Cookie: flow_stack_sid=<session_id>`
+**Headers:** `Cookie: access_token=<token>`
 
 **Authorization:** Requires `ADMIN` role.
 
@@ -496,7 +497,7 @@ Case-insensitive name/email search |
 
 Toggle a user's active status (admin only).
 
-**Headers:** `Cookie: flow_stack_sid=<session_id>`
+**Headers:** `Cookie: access_token=<token>`
 
 **Authorization:** Requires `ADMIN` role.
 
@@ -530,7 +531,7 @@ Toggle a user's active status (admin only).
 
 Delete a user (admin only).
 
-**Headers:** `Cookie: flow_stack_sid=<session_id>`
+**Headers:** `Cookie: access_token=<token>`
 
 **Authorization:** Requires `ADMIN` role.
 
@@ -557,7 +558,7 @@ All errors follow this format:
 ```
 
 **Common HTTP Status Codes:** | Code | Description | |------|-------------| |
-401 | Unauthorized - No session or invalid credentials | | 403 | Forbidden -
-Insufficient permissions | | 404 | Not Found - Resource does not exist | | 409 |
-Conflict - Resource already exists (e.g., duplicate email) | | 422 |
-Unprocessable Entity - Validation error | | 500 | Internal Server Error |
+401 | Unauthorized - No token, invalid token, or expired refresh token | | 403 |
+Forbidden - Insufficient permissions | | 404 | Not Found - Resource does not
+exist | | 409 | Conflict - Resource already exists (e.g., duplicate email) |
+422 | Unprocessable Entity - Validation error | | 500 | Internal Server Error |

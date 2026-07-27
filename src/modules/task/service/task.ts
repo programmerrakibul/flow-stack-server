@@ -1,24 +1,17 @@
-import type { Prisma } from "@/generated/prisma/client";
+import prisma from "@/config/prisma";
+import type { Prisma, User } from "@/generated/prisma/client";
 import { Role, Status } from "@/generated/prisma/enums";
+import pagination from "@/shared/utils/pagination";
+import prismaHelpers from "@/shared/utils/prisma-helpers";
+import { parseOrThrow } from "@/shared/utils/utils";
+import type { TTaskCreator } from "@/task/interface/task";
 import {
   createTaskSchema,
   taskQuerySchema,
   updateTaskSchema,
   updateTaskStatusSchema,
 } from "@/task/validation/task";
-import prisma from "@/config/prisma";
-import pagination from "@/shared/utils/pagination";
-import prismaHelpers from "@/shared/utils/prisma-helpers";
-import { parseOrThrow } from "@/shared/utils/utils";
-import {
-  ForbiddenError,
-  NotFoundError,
-} from "http-errors-enhanced";
-
-type TTaskCreator = {
-  id: string;
-  role: Role;
-};
+import { ForbiddenError, NotFoundError } from "http-errors-enhanced";
 
 const create = async (creatorId: string, payload: unknown) => {
   const data = parseOrThrow(createTaskSchema, payload);
@@ -27,16 +20,6 @@ const create = async (creatorId: string, payload: unknown) => {
     data: {
       ...data,
       creatorId,
-    },
-    include: {
-      creator: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          role: true,
-        },
-      },
     },
   });
 
@@ -65,16 +48,6 @@ const list = async (creator: TTaskCreator, query: unknown) => {
       orderBy,
       skip,
       take: limit,
-      include: {
-        creator: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true,
-          },
-        },
-      },
     }),
     prisma.task.count({ where }),
   ]);
@@ -86,15 +59,19 @@ const list = async (creator: TTaskCreator, query: unknown) => {
 };
 
 const getById = async (creator: TTaskCreator, taskId: string) => {
+  const where =
+    creator.role !== Role.ADMIN
+      ? { id: taskId, creatorId: creator.id }
+      : { id: taskId };
+
   const task = await prisma.task.findUnique({
-    where: { id: taskId },
+    where,
     include: {
       creator: {
         select: {
           id: true,
           name: true,
           email: true,
-          role: true,
         },
       },
     },
@@ -104,18 +81,18 @@ const getById = async (creator: TTaskCreator, taskId: string) => {
     throw new NotFoundError("Task not found");
   }
 
-  if (creator.role !== Role.ADMIN && task.creatorId !== creator.id) {
-    throw new ForbiddenError("You don't have access to this task");
-  }
-
   return task;
 };
 
-const update = async (creator: TTaskCreator, taskId: string, payload: unknown) => {
+const update = async (
+  creator: TTaskCreator,
+  taskId: string,
+  payload: unknown,
+) => {
   const data = parseOrThrow(updateTaskSchema, payload);
 
   const task = await prisma.task.findUnique({
-    where: { id: taskId },
+    where: { id: taskId, creatorId: creator.id },
     select: {
       id: true,
       creatorId: true,
@@ -125,10 +102,6 @@ const update = async (creator: TTaskCreator, taskId: string, payload: unknown) =
 
   if (!task) {
     throw new NotFoundError("Task not found");
-  }
-
-  if (task.creatorId !== creator.id) {
-    throw new ForbiddenError("Only task owner can update a task");
   }
 
   if (task.status === Status.COMPLETED) {
@@ -143,26 +116,20 @@ const update = async (creator: TTaskCreator, taskId: string, payload: unknown) =
   const updatedTask = await prisma.task.update({
     where: { id: taskId },
     data: updateData,
-    include: {
-      creator: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          role: true,
-        },
-      },
-    },
   });
 
   return updatedTask;
 };
 
-const updateStatus = async (creator: TTaskCreator, taskId: string, payload: unknown) => {
+const updateStatus = async (
+  creator: TTaskCreator,
+  taskId: string,
+  payload: unknown,
+) => {
   const { status } = parseOrThrow(updateTaskStatusSchema, payload);
 
   const task = await prisma.task.findUnique({
-    where: { id: taskId },
+    where: { id: taskId, creatorId: creator.id },
     select: {
       id: true,
       creatorId: true,
@@ -174,33 +141,21 @@ const updateStatus = async (creator: TTaskCreator, taskId: string, payload: unkn
     throw new NotFoundError("Task not found");
   }
 
-  if (task.creatorId !== creator.id) {
-    throw new ForbiddenError("Only task owner can update task status");
-  }
-
   if (task.status === Status.COMPLETED) {
-    throw new ForbiddenError("Completed tasks cannot have their status changed");
+    throw new ForbiddenError(
+      "Completed tasks cannot have their status changed",
+    );
   }
 
   const updatedTask = await prisma.task.update({
     where: { id: taskId },
     data: { status },
-    include: {
-      creator: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          role: true,
-        },
-      },
-    },
   });
 
   return updatedTask;
 };
 
-const remove = async (creator: TTaskCreator, taskId: string) => {
+const remove = async (creator: Pick<User, "id" | "role">, taskId: string) => {
   const task = await prisma.task.findUnique({
     where: { id: taskId },
     select: {

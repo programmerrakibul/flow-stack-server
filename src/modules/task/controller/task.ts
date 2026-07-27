@@ -5,7 +5,7 @@ import sendResponse from "@/shared/utils/sendResponse";
 import status from "http-status";
 
 const create = async (req: Request, res: Response) => {
-  const creatorId = req.session.user!.id;
+  const creatorId = req.user.id;
   const result = await services.create(creatorId, req.body);
 
   sendResponse.success(res, status.CREATED, {
@@ -16,8 +16,8 @@ const create = async (req: Request, res: Response) => {
 
 const list = async (req: Request, res: Response) => {
   const creator = {
-    id: req.session.user!.id,
-    role: req.session.user!.role,
+    id: req.user.id,
+    role: req.user.role,
   };
 
   const result = await services.list(creator, req.query);
@@ -31,8 +31,8 @@ const list = async (req: Request, res: Response) => {
 
 const getById = async (req: Request, res: Response) => {
   const creator = {
-    id: req.session.user!.id,
-    role: req.session.user!.role,
+    id: req.user.id,
+    role: req.user.role,
   };
 
   const result = await services.getById(creator, req.params.id as string);
@@ -45,8 +45,8 @@ const getById = async (req: Request, res: Response) => {
 
 const update = async (req: Request, res: Response) => {
   const creator = {
-    id: req.session.user!.id,
-    role: req.session.user!.role,
+    id: req.user.id,
+    role: req.user.role,
   };
 
   const result = await services.update(creator, req.params.id as string, req.body);
@@ -59,8 +59,8 @@ const update = async (req: Request, res: Response) => {
 
 const updateStatus = async (req: Request, res: Response) => {
   const creator = {
-    id: req.session.user!.id,
-    role: req.session.user!.role,
+    id: req.user.id,
+    role: req.user.role,
   };
 
   const result = await services.updateStatus(creator, req.params.id as string, req.body);
@@ -73,8 +73,8 @@ const updateStatus = async (req: Request, res: Response) => {
 
 const remove = async (req: Request, res: Response) => {
   const creator = {
-    id: req.session.user!.id,
-    role: req.session.user!.role,
+    id: req.user.id,
+    role: req.user.role,
   };
 
   const result = await services.remove(creator, req.params.id as string);

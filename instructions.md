@@ -1,99 +1,111 @@
-Role: Senior Backend Software Engineer (8+ years experience in Node.js,
-Express/TypeScript, Prisma, and DDD/Modular Architecture).
+# INSTRUCTIONS.md: Auth Migration to Dual-Token Architecture
 
-Task Overview: Explore the existing codebase, understand the domain-driven
-modular structure, and implement the complete 'Task' domain, along with
-role-based authorization rules, dynamic dashboard statistics/activities, utility
-helpers, and full project documentation.
+**Role:** Principal Backend Software Engineer (8+ years experience in Node.js,
+Express, TypeScript, Prisma, and Security Standards).
 
----
-
-### Core Instructions & Guidelines:
-
-1. Codebase Exploration:
-   - First, scan and map the entire project directory to align with the existing
-     `src/modules/<name>` structure.
-   - Review existing authentication and session verification middlewares to
-     integrate smoothly with session-based user context.
-
-2. Syntax & Code Quality Standards:
-   - Prefer modern **arrow functions** unless traditional functions are strictly
-     required by framework patterns.
-   - Enforce **DRY principles**: Extract reusable query helpers, response
-     formatters, validation schemas, and error handlers into small, modular
-     utility files.
-   - Implement strict type safety across all requests, responses, and database
-     queries.
+**Objective:** Refactor the existing authentication system from session-based
+auth to a secure, stateless JWT dual-token system (Access Token + Refresh Token)
+delivered exclusively via `HttpOnly` cookies.
 
 ---
 
-### Implementation Requirements:
+## Pre-Implementation Routine
 
-#### Task 1: Module Architecture & CRUD (`src/modules/task/`)
-
-Implement standard domain-driven layers (e.g., `task.ts`, `task.ts`, `task.ts`,
-`task.ts`):
-
-- **Create Task:** Allow authenticated users to create tasks linked to
-  `creatorId`.
-- **Read / List Tasks (with Filtering & Search):**
-  - Support filtering by `status` and `priority`.
-  - Support keyword search by `title` (case-insensitive search/contains).
-  - Enforce Access Control: Standard users fetch only their created tasks
-    (`creatorId = session.userId`), while Admins can view all tasks across the
-    system.
-- **Update Task & Status:**
-  - Only task owners (`creatorId`) can update task details and status.
-  - **Business Rule:** Tasks with `status === 'COMPLETED'` cannot have their
-    status updated or changed back.
-- **Delete Task:**
-  - Task owner (`creatorId`) CAN delete their task.
-  - Admin (`role === 'ADMIN'`) CAN delete any task.
-  - Standard users CANNOT delete tasks created by others.
-
-#### Task 2: Dashboard Statistics & Activity (`src/modules/dashboard/` or relevant module)
-
-- Implement endpoint(s) to fetch dashboard stats tailored to session roles:
-  - **USER Dashboard:** Counts of total tasks, tasks by status (`TODO`,
-    `IN_PROGRESS`, `COMPLETED`), tasks by priority, and recent task activity
-    log/list for the logged-in user for last 30 days.
-  - **ADMIN Dashboard:** System-wide aggregates (total users, active users,
-    total system tasks grouped by status and priority, top active task creators,
-    and recent global task activity) for last 30 days. Total active users. User
-    manage endpoint for admin ~ can delete and toggle users isActive status.
-
-#### Task 3: Authorization & Middleware Refinement
-
-- Utilize the session-based user context attached from the session verification
-  middleware.
-- Refine or create modular RBAC/Ownership middlewares (e.g.,
-  `verifySessionId()`, `authorize()`) to keep controller actions clean and thin.
-
-#### Task 4: Utility & Helper Refinements
-
-- Create small, reusable helper functions for handling pagination, Prisma
-  sorting/filtering clauses, dynamic search inputs, and standard HTTP API
-  responses.
-
-#### Task 5: Documentation Deliverables
-
-Generate three clean Markdown documentation files at the root of the project:
-
-1. `ENDPOINTS.md`: Comprehensive API reference covering method, URL, request
-   headers/cookies, payload schemas, query parameters, authorization
-   requirements, and sample response JSONs.
-2. `AGENTS.md`: Technical summary outlining system architecture, database design
-   choices, state transition rules (e.g., immutable COMPLETED state), and
-   developer guidelines for future AI/human maintainers.
-3. `README.md`: Complete project overview, environmental configuration guide
-   (`.env.example` reference), database setup commands (Prisma
-   generation/migrations), and local server start instructions.
-
-### Note:
-
-validate using zod schema with parseOrThrow() function.
+1. Read and analyze the following project documentation completely before
+   modifying any code:
+   - `AGENTS.md`
+   - `ENDPOINTS.md`
+   - `README.md`
+2. Audit the current session-based authentication implementation across
+   `src/modules/auth/` and existing middleware files to identify all points
+   requiring refactoring.
 
 ---
 
-Start by exploring the codebase, verify the session authorization middleware,
-and outline your execution plan before writing code.
+## Key Constraints & Security Architecture Rules
+
+- **Stateless Tokens:** Do **NOT** persist access or refresh tokens in the
+  database.
+- **Storage & Transmission:** Store both Access and Refresh tokens strictly in
+  `HttpOnly`, `SameSite=Lax` (or `Strict`), and `Secure` (in production)
+  cookies.
+- **Secrets:** Use distinct environment variables for access and refresh token
+  secrets:
+  - `JWT_ACCESS_SECRET`
+  - `JWT_REFRESH_SECRET`
+- **Expirations:** Set configurable expirations (e.g., Access Token: `15m`,
+  Refresh Token: `7d`).
+- **Code Reusability (DRY):** Do not write inline JWT logic inside controllers
+  or middlewares. Abstract all signature, verification, and cookie-setting
+  procedures into small, single-responsibility utility helpers.
+
+---
+
+## Step-by-Step Implementation Roadmap
+
+### Phase 1: Environment & Token Utilities
+
+Create clean utility helpers in `src/modules/shared/utils/`):
+
+1. **JWT Utilities (`jwt.ts`):**
+   - `generateAccessToken(payload)`
+   - `generateRefreshToken(payload)`
+   - `verifyAccessToken(token)`
+   - `verifyRefreshToken(token)`
+2. **Cookie Utilities (`cookie.ts`):**
+   - Reusable helpers to attach Access and Refresh cookies to the response
+     object (`res.cookie(...)`).
+   - Reusable helper to clear auth cookies on logout (`res.clearCookie(...)`).
+
+### Phase 2: Refactor Authentication Handlers
+
+Update the Auth module (`auth/controller/auth.ts`, `auth/service/auth.ts`):
+
+1. **Login / Register:**
+   - Validate credentials using `bcryptjs`.
+   - Generate both `accessToken` and `refreshToken`.
+   - Attach both tokens as `HttpOnly` cookies on successful authentication.
+2. **Token Refresh Endpoint (`/auth/refresh-token`):**
+   - Read the `refreshToken` from `req.cookies`.
+   - Verify the refresh token using `JWT_REFRESH_SECRET`.
+   - If valid, generate a **new** `accessToken` and attach it to the cookies.
+   - Return a clean success response.
+3. **Logout Endpoint (`/auth/logout`):**
+   - Clear both access and refresh cookies.
+
+### Phase 3: Auth & Authorization Middlewares
+
+Update/Create global auth middleware (`src/modules/shared/middlewares/auth.ts`):
+
+1. Extract `accessToken` from `req.cookies`.
+2. Verify token against `JWT_ACCESS_SECRET`.
+3. **Auto-Silent Refresh Handling:** If the `accessToken` is expired or missing,
+   check for a valid `refreshToken`:
+   - If `refreshToken` is valid, automatically generate a new `accessToken`, set
+     it in `res.cookie`, attach the decoded user context to `req.user`, and
+     proceed (`next()`).
+   - If both tokens are invalid or expired, clear remaining cookies and throw a
+     `401 Unauthorized` response.
+
+### Phase 4: Documentation Updates
+
+Update project documentation to reflect the updated auth flow:
+
+1. `ENDPOINTS.md`: Update request/response formats, headers, and cookie
+   behaviors for `/auth/login`, `/auth/refresh-token`, `/auth/logout`, and
+   protected routes.
+2. `AGENTS.md`: Update security context and authentication architecture details.
+3. `README.md`: Ensure environment variables list includes `JWT_ACCESS_SECRET`,
+   `JWT_REFRESH_SECRET`, `JWT_ACCESS_EXPIRES_IN`, and `JWT_REFRESH_EXPIRES_IN`.
+
+---
+
+## Validation Checklist
+
+- [ ] Existing session dependencies/tables are bypassed or cleaned up safely.
+- [ ] Access & Refresh tokens use different secrets.
+- [ ] Tokens are invisible to client-side JavaScript (`HttpOnly` flag active).
+- [ ] Expired Access Tokens auto-renew seamlessly when a valid Refresh Token is
+      present.
+- [ ] Controllers contain zero boilerplate token/cookie creation code (delegated
+      to utilities).

@@ -5,7 +5,7 @@ import sendResponse from "@/shared/utils/sendResponse";
 import status from "http-status";
 
 const getUserDashboard = async (req: Request, res: Response) => {
-  const userId = req.session.user!.id;
+  const userId = req.user.id;
   const result = await services.getUserDashboard(userId);
 
   sendResponse.success(res, status.OK, {
