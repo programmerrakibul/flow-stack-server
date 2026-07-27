@@ -25,7 +25,7 @@ Create a `.env` file in the root directory:
 
 ```env
 NODE_ENV=development
-DATABASE_URL=postgresql://user:password@localhost:5432/flowstack?schema=public
+DATABASE_URL=your_postgresql_database_url
 PORT=8000
 SESSION_SECRET=your-super-secret-session-key
 ```
@@ -94,7 +94,6 @@ flow-stack-server/
 │       ├── task/              # Task management
 │       ├── dashboard/         # Dashboard & user management
 │       └── shared/            # Shared utilities
-├── instructions.md            # Development guidelines
 ├── ENDPOINTS.md               # API documentation
 ├── AGENTS.md                  # Architecture guide
 └── README.md                  # This file
@@ -154,7 +153,3 @@ This project follows **Domain-Driven Modular Architecture** with:
 - **Standardized responses** across all endpoints
 
 For architecture details, see [AGENTS.md](./AGENTS.md).
-
-## License
-
-ISC

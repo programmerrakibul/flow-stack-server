@@ -14,25 +14,10 @@ export const createTaskSchema = z.object({
     .trim()
     .min(1, "Description is required"),
 
-  priority: z.nativeEnum(Priority).default(Priority.LOW),
+  priority: z.nativeEnum(Priority, `Priority must be one of ${Object.values(Priority).join(", ")}`).default(Priority.LOW),
 });
 
-export const updateTaskSchema = z.object({
-  title: z
-    .string()
-    .trim()
-    .min(3, "Title must be at least 3 characters long")
-    .max(255, "Title must be at most 255 characters long")
-    .optional(),
-
-  description: z
-    .string()
-    .trim()
-    .min(1, "Description cannot be empty")
-    .optional(),
-
-  priority: z.nativeEnum(Priority).optional(),
-});
+export const updateTaskSchema =createTaskSchema.partial();
 
 export const updateTaskStatusSchema = z.object({
   status: z.nativeEnum(Status),

@@ -168,13 +168,7 @@ Create a new task.
     "status": "TODO",
     "creatorId": "uuid",
     "createdAt": "datetime",
-    "updatedAt": "datetime",
-    "creator": {
-      "id": "uuid",
-      "name": "string",
-      "email": "string",
-      "role": "USER"
-    }
+    "updatedAt": "datetime"
   }
 }
 ```
@@ -212,13 +206,7 @@ Case-insensitive title search | | status | string | Filter by status: `TODO`,
       "status": "TODO",
       "creatorId": "uuid",
       "createdAt": "datetime",
-      "updatedAt": "datetime",
-      "creator": {
-        "id": "uuid",
-        "name": "string",
-        "email": "string",
-        "role": "USER"
-      }
+      "updatedAt": "datetime"
     }
   ],
   "pagination": {
@@ -259,8 +247,7 @@ access any task.
     "creator": {
       "id": "uuid",
       "name": "string",
-      "email": "string",
-      "role": "USER"
+      "email": "string"
     }
   }
 }
@@ -292,7 +279,7 @@ updated.
   "success": true,
   "message": "Task updated successfully",
   "data": {
-    /* updated task with creator */
+    /* updated task */
   }
 }
 ```
@@ -321,7 +308,7 @@ their status changed.
   "success": true,
   "message": "Task status updated successfully",
   "data": {
-    /* updated task with creator */
+    /* updated task */
   }
 }
 ```
