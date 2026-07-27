@@ -1,8 +1,9 @@
-import type { User } from "@/generated/prisma/client";
-import "express-session";
+import type { TJwtPayload } from "@/shared/types";
 
-declare module "express-session" {
-  interface SessionData {
-    user: Pick<User, "id" | "email" | "role" | "emailVerified">;
+declare global {
+  namespace Express {
+    interface Request {
+      user: TJwtPayload;
+    }
   }
 }

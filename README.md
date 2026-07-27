@@ -5,7 +5,7 @@ PostgreSQL using domain-driven modular architecture.
 
 ## Features
 
-- **Session-based authentication** with secure cookies
+- **JWT dual-token authentication** (access + refresh tokens via HttpOnly cookies)
 - **Role-based access control** (USER, ADMIN)
 - **Task management** with CRUD operations, filtering, search, and pagination
 - **Dashboard analytics** with role-specific statistics
@@ -27,17 +27,21 @@ Create a `.env` file in the root directory:
 NODE_ENV=development
 DATABASE_URL=your_postgresql_database_url
 PORT=8000
-SESSION_SECRET=your-super-secret-session-key
+JWT_ACCESS_SECRET=your-access-token-secret
+JWT_REFRESH_SECRET=your-refresh-token-secret
 ```
 
 ### Variable Descriptions
 
-| Variable       | Required | Default       | Description                                            |
-| -------------- | -------- | ------------- | ------------------------------------------------------ |
-| NODE_ENV       | No       | `development` | Environment mode (`development`, `test`, `production`) |
-| DATABASE_URL   | Yes      | -             | PostgreSQL connection string                           |
-| PORT           | No       | `8000`        | Server listening port                                  |
-| SESSION_SECRET | Yes      | -             | Secret for signing session cookies                     |
+| Variable              | Required | Default       | Description                                      |
+| --------------------- | -------- | ------------- | ------------------------------------------------ |
+| NODE_ENV              | No       | `development` | Environment mode (`development`, `test`, `production`) |
+| DATABASE_URL          | Yes      | -             | PostgreSQL connection string                     |
+| PORT                  | No       | `8000`        | Server listening port                            |
+| JWT_ACCESS_SECRET     | Yes      | -             | Secret for signing access tokens                 |
+| JWT_REFRESH_SECRET    | Yes      | -             | Secret for signing refresh tokens                |
+| JWT_ACCESS_EXPIRES_IN | No       | `15m`         | Access token expiration                          |
+| JWT_REFRESH_EXPIRES_IN | No      | `7d`          | Refresh token expiration                         |
 
 ## Getting Started
 
@@ -82,7 +86,7 @@ flow-stack-server/
 ├── prisma/
 │   ├── schema.prisma          # Root schema
 │   └── models/                # Split model files
-│       ├── user.prisma        # User, Session, Account
+│       ├── user.prisma        # User, Account
 │       └── task.prisma        # Task
 ├── src/
 │   ├── index.ts               # Entry point
@@ -108,6 +112,7 @@ flow-stack-server/
 | POST   | `/api/v1/auth/sign-up`  | Register new user |
 | POST   | `/api/v1/auth/sign-in`  | Login             |
 | POST   | `/api/v1/auth/sign-out` | Logout            |
+| POST   | `/api/v1/auth/refresh-token` | Refresh tokens |
 | GET    | `/api/v1/auth/profile`  | Get profile       |
 
 ### Tasks

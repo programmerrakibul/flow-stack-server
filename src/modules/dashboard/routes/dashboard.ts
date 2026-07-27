@@ -1,13 +1,13 @@
 import express from "express";
 
 import controllers from "@/dashboard/controller/dashboard";
-import { verifySessionId } from "@/shared/middlewares/verify-session-id";
+import { verifyAuth } from "@/shared/middlewares/verify-auth";
 import { authorize } from "@/shared/middlewares/authorize";
 import { Role } from "@/generated/prisma/enums";
 
 const router = express.Router();
 
-router.use(verifySessionId);
+router.use(verifyAuth);
 
 router.get("/user", controllers.getUserDashboard);
 

@@ -1,11 +1,11 @@
 import express from "express";
 
 import controllers from "@/task/controller/task";
-import { verifySessionId } from "@/shared/middlewares/verify-session-id";
+import { verifyAuth } from "@/shared/middlewares/verify-auth";
 
 const router = express.Router();
 
-router.use(verifySessionId);
+router.use(verifyAuth);
 
 router.post("/", controllers.create);
 router.get("/", controllers.list);

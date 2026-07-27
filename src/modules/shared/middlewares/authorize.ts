@@ -4,7 +4,7 @@ import { ForbiddenError } from "http-errors-enhanced";
 
 export const authorize = (...allowedRoles: Role[]) => {
   return (req: Request, _res: Response, next: NextFunction) => {
-    const { user } = req.session;
+    const { user } = req;
 
     if (!user || !allowedRoles.includes(user.role)) {
       throw new ForbiddenError(

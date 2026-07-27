@@ -1,3 +1,5 @@
+import type { User } from "@/generated/prisma/client";
+
 export type TPagination = {
   page: number;
   limit: number;
@@ -20,3 +22,5 @@ export type TErrorResponse = {
 };
 
 export type TResponse<T = unknown> = TSuccessResponse<T> | TErrorResponse;
+
+export type TJwtPayload = Pick<User, "id" | "role" | "email" | "emailVerified">;

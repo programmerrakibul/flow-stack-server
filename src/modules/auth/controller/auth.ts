@@ -1,19 +1,26 @@
 import type { Request, Response } from "express";
 
 import services from "@/auth/service/auth";
-import { getEnv, NODE_ENV } from "@/config/env";
+import cookieUtils from "@/shared/utils/cookie";
+import jwtUtils from "@/shared/utils/jwt";
 import sendResponse from "@/shared/utils/sendResponse";
 import status from "http-status";
 
 const signUp = async (req: Request, res: Response) => {
   const result = await services.signUp(req.body);
 
-  req.session.user = {
+  const payload = {
     id: result.id,
     email: result.email,
     role: result.role,
     emailVerified: result.emailVerified,
   };
+
+  const accessToken = jwtUtils.generateAccessToken(payload);
+  const refreshToken = jwtUtils.generateRefreshToken(payload);
+
+  cookieUtils.setAccessCookie(res, accessToken);
+  cookieUtils.setRefreshCookie(res, refreshToken);
 
   sendResponse.success(res, status.CREATED, {
     message: "User registered successfully",
@@ -24,12 +31,18 @@ const signUp = async (req: Request, res: Response) => {
 const signIn = async (req: Request, res: Response) => {
   const result = await services.signIn(req.body);
 
-  req.session.user = {
+  const payload = {
     id: result.id,
     email: result.email,
     role: result.role,
     emailVerified: result.emailVerified,
   };
+
+  const accessToken = jwtUtils.generateAccessToken(payload);
+  const refreshToken = jwtUtils.generateRefreshToken(payload);
+
+  cookieUtils.setAccessCookie(res, accessToken);
+  cookieUtils.setRefreshCookie(res, refreshToken);
 
   sendResponse.success(res, status.OK, {
     message: "User logged in successfully",
@@ -37,31 +50,40 @@ const signIn = async (req: Request, res: Response) => {
   });
 };
 
-const signOut = (req: Request, res: Response) => {
-  const inProduction = getEnv().NODE_ENV === NODE_ENV.PRODUCTION;
-
-  req.session.destroy((err: unknown) => {
-    if (err) {
-      throw err;
-    }
-  });
-
-  res.clearCookie("flow_stack_sid", {
-    path: "/",
-    httpOnly: true,
-    secure: inProduction,
-    sameSite: inProduction ? "none" : "lax",
-  });
+const signOut = (_req: Request, res: Response) => {
+  cookieUtils.clearAuthCookies(res);
 
   sendResponse.success(res, status.OK, {
     message: "User logged out successfully",
   });
 };
 
-const profile = async (req: Request, res: Response) => {
-  const id = req.session.user!.id;
+const refreshToken = async (req: Request, res: Response) => {
+  const token = req.cookies[cookieUtils.REFRESH_TOKEN_COOKIE_NAME];
 
-  const result = await services.profile(id);
+  if (!token) {
+    sendResponse.success(res, status.OK, {
+      message: "Refresh token not found",
+    });
+
+    return;
+  }
+
+  const decoded = jwtUtils.verifyRefreshToken(token);
+
+  const accessToken = jwtUtils.generateAccessToken(decoded);
+  const newRefreshToken = jwtUtils.generateRefreshToken(decoded);
+
+  cookieUtils.setAccessCookie(res, accessToken);
+  cookieUtils.setRefreshCookie(res, newRefreshToken);
+
+  sendResponse.success(res, status.OK, {
+    message: "Token refreshed successfully",
+  });
+};
+
+const profile = async (req: Request, res: Response) => {
+  const result = await services.profile(req.user.id);
 
   sendResponse.success(res, status.OK, {
     message: "User profile fetched successfully",
@@ -73,6 +95,7 @@ const controllers = {
   signUp,
   signIn,
   signOut,
+  refreshToken,
   profile,
 };
 

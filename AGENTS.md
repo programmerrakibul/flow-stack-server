@@ -62,33 +62,37 @@ modules/<domain>/
 - Linked to User via `creatorId` FK (cascade delete)
 - Composite indexes: `(status, priority)`, `(creatorId, status)`
 
-#### Session
+## Authentication
 
-- Managed by `@quixo3/prisma-session-store`
-- TEXT primary key (required by session store)
-- Indexed `expiresAt` for cleanup
+**Stateless JWT dual-token authentication** with access and refresh tokens stored
+in HttpOnly cookies.
 
-## State Transition Rules
+### Token Architecture
 
-### Task Status
+- **Access Token**: Short-lived (15m), contains user ID, email, role, emailVerified
+- **Refresh Token**: Long-lived (7d), used to obtain new access tokens
+- Both tokens stored in HttpOnly, Secure (production), SameSite=Lax cookies
+- No token persistence in database (fully stateless)
 
-```
-TODO → IN_PROGRESS → COMPLETED
-```
+### Token Lifecycle
 
-**Immutable COMPLETED state:** Once a task reaches `COMPLETED` status, it cannot
-be changed back or modified. This is enforced at the service layer.
+1. User signs up/signs in → server generates access + refresh tokens
+2. Tokens set as HttpOnly cookies on the response
+3. Subsequent requests include access token cookie automatically
+4. `verifyAuth` middleware validates access token from cookie
+5. If access token expired, middleware automatically refreshes using refresh token
+6. If refresh token invalid/expired, user must re-authenticate
 
-### User Active Status
+### Auth Utilities
 
-- Admins can toggle `isActive` on any user
-- Inactive users still exist but their account is disabled
+- `src/modules/shared/utils/jwt.ts` - Token generation and verification
+- `src/modules/shared/utils/cookie.ts` - Cookie helpers and configuration
 
 ## Authorization Rules
 
 ### Role-Based Access Control (RBAC)
 
-- `verifySessionId` middleware ensures user is authenticated
+- `verifyAuth` middleware validates JWT and attaches user to `req.user`
 - `authorize(...roles)` middleware restricts endpoints to specific roles
 
 ### Task Ownership
@@ -138,16 +142,17 @@ be changed back or modified. This is enforced at the service layer.
 
 ## Tech Stack
 
-| Technology           | Purpose               |
-| -------------------- | --------------------- |
-| TypeScript ^7.0      | Type safety           |
-| Express ^5.2         | HTTP framework        |
-| Prisma ^7.9          | ORM + PostgreSQL      |
-| Zod ^4.4             | Input validation      |
-| bcryptjs             | Password hashing      |
-| express-session      | Cookie-based sessions |
-| http-errors-enhanced | HTTP error classes    |
-| http-status          | Status code constants |
+| Technology           | Purpose                    |
+| -------------------- | -------------------------- |
+| TypeScript ^7.0      | Type safety                |
+| Express ^5.2         | HTTP framework             |
+| Prisma ^7.9          | ORM + PostgreSQL           |
+| Zod ^4.4             | Input validation           |
+| bcryptjs             | Password hashing           |
+| jsonwebtoken         | JWT token generation       |
+| cookie-parser        | Cookie parsing             |
+| http-errors-enhanced | HTTP error classes         |
+| http-status          | Status code constants      |
 
 ## Database Commands
 
