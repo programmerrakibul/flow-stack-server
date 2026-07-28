@@ -9,9 +9,9 @@ export const verifyAuth = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const token = req.cookies[cookieUtils.ACCESS_TOKEN_COOKIE_NAME] as
-    | string
-    | undefined;
+  const bearerToken = req.headers["authorization"]?.substring(7);
+  const cookieToken = req.cookies[cookieUtils.ACCESS_TOKEN_COOKIE_NAME];
+  const token = cookieToken || bearerToken;
 
   if (!token) {
     throw new UnauthorizedError("Unauthorized access");
@@ -23,9 +23,7 @@ export const verifyAuth = async (
 
     next();
   } catch {
-    const refreshToken = req.cookies[cookieUtils.REFRESH_TOKEN_COOKIE_NAME] as
-      | string
-      | undefined;
+    const refreshToken = req.cookies[cookieUtils.REFRESH_TOKEN_COOKIE_NAME];
 
     if (!refreshToken) {
       throw new UnauthorizedError("Invalid refresh token");

@@ -31,6 +31,12 @@ const envSchema = z.object({
   JWT_ACCESS_EXPIRES_IN: z.string().default("15m"),
 
   JWT_REFRESH_EXPIRES_IN: z.string().default("7d"),
+
+  CLIENT_URL: z
+    .string("CLIENT_URL is required")
+    .trim()
+    .url("Invalid client URL")
+    .min(1, "CLIENT_URL is required"),
 });
 
 export const getEnv = () => {

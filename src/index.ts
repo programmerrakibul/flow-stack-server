@@ -13,7 +13,13 @@ const PORT = env.PORT;
 const inProduction = env.NODE_ENV === NODE_ENV.PRODUCTION;
 
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: env.CLIENT_URL,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  }),
+);
 app.use(cookieParser());
 
 const startServer = async () => {

@@ -3,8 +3,8 @@ import { status } from "http-status";
 
 import authRouter from "@/auth/routes/auth";
 import dashboardRouter from "@/dashboard/routes/dashboard";
+import sendResponse from "@/modules/shared/utils/send-response";
 import { globalErrorHandler } from "@/shared/middlewares/global-error-handler";
-import sendResponse from "@/shared/utils/sendResponse";
 import taskRouter from "@/task/routes/task";
 
 const API_PREFIX = "/api/v1" as const;

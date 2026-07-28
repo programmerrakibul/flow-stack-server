@@ -14,6 +14,7 @@ export type TSuccessResponse<T = unknown> = {
   message: string;
   data?: T;
   pagination?: TPagination;
+  token?: string;
 };
 
 export type TErrorResponse = {

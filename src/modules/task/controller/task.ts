@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 
+import sendResponse from "@/modules/shared/utils/send-response";
 import services from "@/task/service/task";
-import sendResponse from "@/shared/utils/sendResponse";
 import status from "http-status";
 
 const create = async (req: Request, res: Response) => {
@@ -49,7 +49,11 @@ const update = async (req: Request, res: Response) => {
     role: req.user.role,
   };
 
-  const result = await services.update(creator, req.params.id as string, req.body);
+  const result = await services.update(
+    creator,
+    req.params.id as string,
+    req.body,
+  );
 
   sendResponse.success(res, status.OK, {
     message: "Task updated successfully",
@@ -63,7 +67,11 @@ const updateStatus = async (req: Request, res: Response) => {
     role: req.user.role,
   };
 
-  const result = await services.updateStatus(creator, req.params.id as string, req.body);
+  const result = await services.updateStatus(
+    creator,
+    req.params.id as string,
+    req.body,
+  );
 
   sendResponse.success(res, status.OK, {
     message: "Task status updated successfully",
