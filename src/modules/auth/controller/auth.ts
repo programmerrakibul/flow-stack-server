@@ -1,9 +1,9 @@
 import type { Request, Response } from "express";
 
 import services from "@/auth/service/auth";
+import sendResponse from "@/modules/shared/utils/send-response";
 import cookieUtils from "@/shared/utils/cookie";
 import jwtUtils from "@/shared/utils/jwt";
-import sendResponse from "@/shared/utils/sendResponse";
 import status from "http-status";
 
 const signUp = async (req: Request, res: Response) => {
@@ -24,6 +24,7 @@ const signUp = async (req: Request, res: Response) => {
 
   sendResponse.success(res, status.CREATED, {
     message: "User registered successfully",
+    token: accessToken,
     data: result,
   });
 };
@@ -46,6 +47,7 @@ const signIn = async (req: Request, res: Response) => {
 
   sendResponse.success(res, status.OK, {
     message: "User logged in successfully",
+    token: accessToken,
     data: result,
   });
 };

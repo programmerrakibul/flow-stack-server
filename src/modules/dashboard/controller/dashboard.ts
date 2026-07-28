@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 
 import services from "@/dashboard/service/dashboard";
-import sendResponse from "@/shared/utils/sendResponse";
+import sendResponse from "@/modules/shared/utils/send-response";
 import status from "http-status";
 
 const getUserDashboard = async (req: Request, res: Response) => {
@@ -34,7 +34,10 @@ const listUsers = async (req: Request, res: Response) => {
 };
 
 const toggleUserActive = async (req: Request, res: Response) => {
-  const result = await services.toggleUserActive(req.params.id as string, req.body);
+  const result = await services.toggleUserActive(
+    req.params.id as string,
+    req.body,
+  );
 
   sendResponse.success(res, status.OK, {
     message: "User status toggled successfully",

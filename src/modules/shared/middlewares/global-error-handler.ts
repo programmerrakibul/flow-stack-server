@@ -3,7 +3,7 @@ import { HttpError } from "http-errors-enhanced";
 import status from "http-status";
 
 import { getEnv, NODE_ENV } from "@/config/env";
-import sendResponse from "@/shared/utils/sendResponse";
+import sendResponse from "@/modules/shared/utils/send-response";
 import { ZodError } from "zod";
 
 const env = getEnv();

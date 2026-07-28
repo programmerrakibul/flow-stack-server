@@ -48,6 +48,15 @@ const list = async (creator: TTaskCreator, query: unknown) => {
       orderBy,
       skip,
       take: limit,
+      include: {
+        creator: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
     }),
     prisma.task.count({ where }),
   ]);
