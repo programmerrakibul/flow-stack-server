@@ -1,4 +1,5 @@
 import { Priority, Status } from "@/generated/prisma/enums";
+import { querySchema } from "@/modules/shared/validation/query";
 import z from "zod";
 
 export const createTaskSchema = z.object({
@@ -14,19 +15,22 @@ export const createTaskSchema = z.object({
     .trim()
     .min(1, "Description is required"),
 
-  priority: z.nativeEnum(Priority, `Priority must be one of ${Object.values(Priority).join(", ")}`).default(Priority.LOW),
+  priority: z
+    .nativeEnum(
+      Priority,
+      `Priority must be one of ${Object.values(Priority).join(", ")}`,
+    )
+    .default(Priority.LOW),
 });
 
-export const updateTaskSchema =createTaskSchema.partial();
+export const updateTaskSchema = createTaskSchema.partial();
 
 export const updateTaskStatusSchema = z.object({
   status: z.nativeEnum(Status),
 });
 
 export const taskQuerySchema = z.object({
-  page: z.string().optional(),
-  limit: z.string().optional(),
-  search: z.string().optional(),
+  ...querySchema,
   status: z.nativeEnum(Status).optional(),
   priority: z.nativeEnum(Priority).optional(),
   sortBy: z.string().optional(),
