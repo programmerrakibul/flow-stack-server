@@ -1,4 +1,3 @@
-import { toggleUserActiveSchema } from "@/dashboard/validation/dashboard";
 import prisma from "@/config/prisma";
 import pagination from "@/shared/utils/pagination";
 import { parseOrThrow } from "@/shared/utils/utils";
@@ -14,42 +13,38 @@ const THIRTY_DAYS_AGO = () => {
 const getUserDashboard = async (userId: string) => {
   const thirtyDaysAgo = THIRTY_DAYS_AGO();
 
-  const [
-    totalTasks,
-    tasksByStatus,
-    tasksByPriority,
-    recentActivity,
-  ] = await Promise.all([
-    prisma.task.count({
-      where: { creatorId: userId },
-    }),
-    prisma.task.groupBy({
-      by: ["status"],
-      where: { creatorId: userId },
-      _count: { status: true },
-    }),
-    prisma.task.groupBy({
-      by: ["priority"],
-      where: { creatorId: userId },
-      _count: { priority: true },
-    }),
-    prisma.task.findMany({
-      where: {
-        creatorId: userId,
-        createdAt: { gte: thirtyDaysAgo },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 10,
-      select: {
-        id: true,
-        title: true,
-        status: true,
-        priority: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    }),
-  ]);
+  const [totalTasks, tasksByStatus, tasksByPriority, recentActivity] =
+    await Promise.all([
+      prisma.task.count({
+        where: { creatorId: userId },
+      }),
+      prisma.task.groupBy({
+        by: ["status"],
+        where: { creatorId: userId },
+        _count: { status: true },
+      }),
+      prisma.task.groupBy({
+        by: ["priority"],
+        where: { creatorId: userId },
+        _count: { priority: true },
+      }),
+      prisma.task.findMany({
+        where: {
+          creatorId: userId,
+          createdAt: { gte: thirtyDaysAgo },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          priority: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      }),
+    ]);
 
   const statusCounts = {
     TODO: 0,
@@ -198,8 +193,18 @@ const listUsers = async (query: Record<string, string>) => {
   const where = params.search?.trim()
     ? {
         OR: [
-          { name: { contains: params.search.trim(), mode: "insensitive" as const } },
-          { email: { contains: params.search.trim(), mode: "insensitive" as const } },
+          {
+            name: {
+              contains: params.search.trim(),
+              mode: "insensitive" as const,
+            },
+          },
+          {
+            email: {
+              contains: params.search.trim(),
+              mode: "insensitive" as const,
+            },
+          },
         ],
       }
     : {};
@@ -233,12 +238,10 @@ const listUsers = async (query: Record<string, string>) => {
   };
 };
 
-const toggleUserActive = async (userId: string, payload: unknown) => {
-  const { isActive } = parseOrThrow(toggleUserActiveSchema, payload);
-
+const toggleUserActive = async (userId: string) => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true },
+    select: { id: true, isActive: true },
   });
 
   if (!user) {
@@ -247,7 +250,7 @@ const toggleUserActive = async (userId: string, payload: unknown) => {
 
   const updatedUser = await prisma.user.update({
     where: { id: userId },
-    data: { isActive },
+    data: { isActive: !user.isActive },
     select: {
       id: true,
       name: true,

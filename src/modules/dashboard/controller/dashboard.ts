@@ -34,10 +34,7 @@ const listUsers = async (req: Request, res: Response) => {
 };
 
 const toggleUserActive = async (req: Request, res: Response) => {
-  const result = await services.toggleUserActive(
-    req.params.id as string,
-    req.body,
-  );
+  const result = await services.toggleUserActive(req.params.id as string);
 
   sendResponse.success(res, status.OK, {
     message: "User status toggled successfully",
