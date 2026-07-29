@@ -5,17 +5,21 @@ import authRouter from "@/auth/routes/auth";
 import dashboardRouter from "@/dashboard/routes/dashboard";
 import sendResponse from "@/modules/shared/utils/send-response";
 import { globalErrorHandler } from "@/shared/middlewares/global-error-handler";
+import { rateLimit } from "@/shared/middlewares/rate-limit";
 import taskRouter from "@/task/routes/task";
 import userRouter from "@/user/routes/user";
 
 const API_PREFIX = "/api/v1" as const;
 
 const mountedRoutes = (app: Express) => {
-  app.get("/", (_req: Request, res: Response) => {
+  app.get("/", (req: Request, res: Response) => {
+    console.log(req.ip);
     sendResponse.success(res, status.OK, {
       message: "Welcome to Flowstack API",
     });
   });
+
+  app.use(rateLimit);
 
   app.use(`${API_PREFIX}/auth`, authRouter);
   app.use(`${API_PREFIX}/users`, userRouter);

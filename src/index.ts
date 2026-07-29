@@ -12,6 +12,7 @@ const PORT = env.PORT;
 
 const inProduction = env.NODE_ENV === NODE_ENV.PRODUCTION;
 
+app.set("trust proxy", true);
 app.use(express.json());
 app.use(
   cors({
