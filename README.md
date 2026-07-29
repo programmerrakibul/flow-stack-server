@@ -29,19 +29,21 @@ DATABASE_URL=your_postgresql_database_url
 PORT=8000
 JWT_ACCESS_SECRET=your-access-token-secret
 JWT_REFRESH_SECRET=your-refresh-token-secret
+CLIENT_URL=http://localhost:3000
 ```
 
 ### Variable Descriptions
 
-| Variable              | Required | Default       | Description                                      |
-| --------------------- | -------- | ------------- | ------------------------------------------------ |
-| NODE_ENV              | No       | `development` | Environment mode (`development`, `test`, `production`) |
-| DATABASE_URL          | Yes      | -             | PostgreSQL connection string                     |
-| PORT                  | No       | `8000`        | Server listening port                            |
-| JWT_ACCESS_SECRET     | Yes      | -             | Secret for signing access tokens                 |
-| JWT_REFRESH_SECRET    | Yes      | -             | Secret for signing refresh tokens                |
-| JWT_ACCESS_EXPIRES_IN | No       | `15m`         | Access token expiration                          |
-| JWT_REFRESH_EXPIRES_IN | No      | `7d`          | Refresh token expiration                         |
+| Variable               | Required | Default       | Description                                      |
+| ---------------------- | -------- | ------------- | ------------------------------------------------ |
+| NODE_ENV               | No       | `development` | Environment mode (`development`, `test`, `production`) |
+| DATABASE_URL           | Yes      | -             | PostgreSQL connection string                     |
+| PORT                   | No       | `8000`        | Server listening port                            |
+| JWT_ACCESS_SECRET      | Yes      | -             | Secret for signing access tokens                 |
+| JWT_REFRESH_SECRET     | Yes      | -             | Secret for signing refresh tokens                |
+| JWT_ACCESS_EXPIRES_IN  | No       | `15m`         | Access token expiration                          |
+| JWT_REFRESH_EXPIRES_IN | No       | `7d`          | Refresh token expiration                         |
+| CLIENT_URL             | Yes      | -             | Allowed CORS origin (must be a valid URL)        |
 
 ## Getting Started
 
@@ -95,8 +97,9 @@ flow-stack-server/
 │   ├── types/                 # TypeScript types
 │   └── modules/
 │       ├── auth/              # Authentication
+│       ├── user/              # User management (admin)
 │       ├── task/              # Task management
-│       ├── dashboard/         # Dashboard & user management
+│       ├── dashboard/         # Dashboard & analytics
 │       └── shared/            # Shared utilities
 ├── ENDPOINTS.md               # API documentation
 ├── AGENTS.md                  # Architecture guide
@@ -107,34 +110,39 @@ flow-stack-server/
 
 ### Authentication
 
-| Method | Endpoint                | Description       |
-| ------ | ----------------------- | ----------------- |
-| POST   | `/api/v1/auth/sign-up`  | Register new user |
-| POST   | `/api/v1/auth/sign-in`  | Login             |
-| POST   | `/api/v1/auth/sign-out` | Logout            |
-| POST   | `/api/v1/auth/refresh-token` | Refresh tokens |
-| GET    | `/api/v1/auth/profile`  | Get profile       |
+| Method | Endpoint                       | Description       |
+| ------ | ------------------------------ | ----------------- |
+| POST   | `/api/v1/auth/sign-up`         | Register new user |
+| POST   | `/api/v1/auth/sign-in`         | Login             |
+| POST   | `/api/v1/auth/sign-out`        | Logout            |
+| POST   | `/api/v1/auth/refresh-token`   | Refresh tokens    |
+| GET    | `/api/v1/auth/profile`         | Get profile       |
 
 ### Tasks
 
-| Method | Endpoint                   | Description           |
-| ------ | -------------------------- | --------------------- |
-| POST   | `/api/v1/tasks`            | Create task           |
-| GET    | `/api/v1/tasks`            | List tasks (filtered) |
-| GET    | `/api/v1/tasks/:id`        | Get task              |
-| PATCH  | `/api/v1/tasks/:id`        | Update task           |
-| PATCH  | `/api/v1/tasks/:id/status` | Update status         |
-| DELETE | `/api/v1/tasks/:id`        | Delete task           |
+| Method | Endpoint                        | Description           |
+| ------ | ------------------------------- | --------------------- |
+| POST   | `/api/v1/tasks`                 | Create task           |
+| GET    | `/api/v1/tasks`                 | List tasks (filtered) |
+| GET    | `/api/v1/tasks/:id`             | Get task              |
+| PATCH  | `/api/v1/tasks/:id`             | Update task           |
+| PATCH  | `/api/v1/tasks/:id/status`      | Update status         |
+| DELETE | `/api/v1/tasks/:id`             | Delete task           |
+
+### Users (Admin)
+
+| Method | Endpoint                        | Description           |
+| ------ | ------------------------------- | --------------------- |
+| GET    | `/api/v1/users`                 | List all users        |
+| PATCH  | `/api/v1/users/:id/status`      | Toggle user active    |
+| DELETE | `/api/v1/users/:id`             | Delete user           |
 
 ### Dashboard
 
-| Method | Endpoint                                          | Description     |
-| ------ | ------------------------------------------------- | --------------- |
-| GET    | `/api/v1/dashboard/user`                          | User dashboard  |
-| GET    | `/api/v1/dashboard/admin`                         | Admin dashboard |
-| GET    | `/api/v1/dashboard/admin/users`                   | List users      |
-| PATCH  | `/api/v1/dashboard/admin/users/:id/toggle-active` | Toggle user     |
-| DELETE | `/api/v1/dashboard/admin/users/:id`               | Delete user     |
+| Method | Endpoint                        | Description           |
+| ------ | ------------------------------- | --------------------- |
+| GET    | `/api/v1/dashboard/user`        | User dashboard        |
+| GET    | `/api/v1/dashboard/admin`       | Admin dashboard       |
 
 For detailed API documentation, see [ENDPOINTS.md](./ENDPOINTS.md).
 

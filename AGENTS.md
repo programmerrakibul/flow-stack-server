@@ -14,11 +14,13 @@ src/
 ├── generated/               # Prisma generated client (gitignored)
 └── modules/
     ├── auth/                # Authentication domain
+    ├── user/                # User management (admin-only)
     ├── task/                # Task management domain
-    ├── dashboard/           # Dashboard & user management domain
+    ├── dashboard/           # Dashboard & analytics domain
     └── shared/              # Cross-cutting concerns
         ├── middlewares/     # Auth, RBAC, error handling
         ├── utils/           # Helpers & utilities
+        ├── validation/      # Shared Zod schemas
         └── types/           # Shared type definitions
 ```
 
@@ -62,25 +64,44 @@ modules/<domain>/
 - Linked to User via `creatorId` FK (cascade delete)
 - Composite indexes: `(status, priority)`, `(creatorId, status)`
 
+## State Transition Rules
+
+### Task Status
+
+```
+TODO -> IN_PROGRESS -> COMPLETED
+```
+
+**Immutable COMPLETED state:** Once a task reaches `COMPLETED` status, it cannot
+be changed back or modified. This is enforced at the service layer.
+
+### User Active Status
+
+- Admins can toggle `isActive` on any user
+- Inactive users still exist but their account is disabled
+
 ## Authentication
 
-**Stateless JWT dual-token authentication** with access and refresh tokens stored
-in HttpOnly cookies.
+**Stateless JWT dual-token authentication** with access and refresh tokens
+stored in HttpOnly cookies and optionally sent via `Authorization` header.
 
 ### Token Architecture
 
-- **Access Token**: Short-lived (15m), contains user ID, email, role, emailVerified
+- **Access Token**: Short-lived (15m), contains user ID, email, role,
+  emailVerified
 - **Refresh Token**: Long-lived (7d), used to obtain new access tokens
 - Both tokens stored in HttpOnly, Secure (production), SameSite=Lax cookies
+- Also accepted via `Authorization: Bearer <access_token>` header
 - No token persistence in database (fully stateless)
 
 ### Token Lifecycle
 
-1. User signs up/signs in → server generates access + refresh tokens
-2. Tokens set as HttpOnly cookies on the response
-3. Subsequent requests include access token cookie automatically
-4. `verifyAuth` middleware validates access token from cookie
-5. If access token expired, middleware automatically refreshes using refresh token
+1. User signs up/signs in -> server generates access + refresh tokens
+2. Tokens set as HttpOnly cookies on the response (also returned in JSON body)
+3. Subsequent requests include access token via cookie or Authorization header
+4. `verifyAuth` middleware validates access token (cookie or header first)
+5. If access token expired, middleware automatically refreshes using refresh
+   token
 6. If refresh token invalid/expired, user must re-authenticate
 
 ### Auth Utilities
@@ -88,12 +109,30 @@ in HttpOnly cookies.
 - `src/modules/shared/utils/jwt.ts` - Token generation and verification
 - `src/modules/shared/utils/cookie.ts` - Cookie helpers and configuration
 
+### Cookie Names
+
+| Cookie Name            | Max Age | HttpOnly | Purpose       |
+| ---------------------- | ------- | -------- | ------------- |
+| `__fs_access_token__`  | 15 min  | true     | Access token  |
+| `__fs_refresh_token__` | 7 days  | true     | Refresh token |
+
 ## Authorization Rules
 
 ### Role-Based Access Control (RBAC)
 
 - `verifyAuth` middleware validates JWT and attaches user to `req.user`
 - `authorize(...roles)` middleware restricts endpoints to specific roles
+
+### Route Protection Matrix
+
+| Module    | Routes                                             | Middleware                        |
+| --------- | -------------------------------------------------- | --------------------------------- |
+| Auth      | POST /sign-up, /sign-in, /sign-out, /refresh-token | None                              |
+| Auth      | GET /profile                                       | `verifyAuth`                      |
+| User      | All                                                | `verifyAuth` + `authorize(ADMIN)` |
+| Task      | All                                                | `verifyAuth`                      |
+| Dashboard | GET /user                                          | `verifyAuth` + `authorize(USER)`  |
+| Dashboard | GET /admin                                         | `verifyAuth` + `authorize(ADMIN)` |
 
 ### Task Ownership
 
@@ -142,17 +181,18 @@ in HttpOnly cookies.
 
 ## Tech Stack
 
-| Technology           | Purpose                    |
-| -------------------- | -------------------------- |
-| TypeScript ^7.0      | Type safety                |
-| Express ^5.2         | HTTP framework             |
-| Prisma ^7.9          | ORM + PostgreSQL           |
-| Zod ^4.4             | Input validation           |
-| bcryptjs             | Password hashing           |
-| jsonwebtoken         | JWT token generation       |
-| cookie-parser        | Cookie parsing             |
-| http-errors-enhanced | HTTP error classes         |
-| http-status          | Status code constants      |
+| Technology           | Purpose               |
+| -------------------- | --------------------- |
+| TypeScript ^7.0      | Type safety           |
+| Express ^5.2         | HTTP framework        |
+| Prisma ^7.9          | ORM + PostgreSQL      |
+| Zod ^4.4             | Input validation      |
+| bcryptjs             | Password hashing      |
+| jsonwebtoken         | JWT token generation  |
+| cookie-parser        | Cookie parsing        |
+| cors                 | CORS configuration    |
+| http-errors-enhanced | HTTP error classes    |
+| http-status          | Status code constants |
 
 ## Database Commands
 

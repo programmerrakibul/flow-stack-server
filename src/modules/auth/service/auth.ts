@@ -100,6 +100,10 @@ const profile = async (id: string) => {
     throw new UnauthorizedError("User not found");
   }
 
+  if (!user.isActive) {
+    throw new UnauthorizedError("We've disabled your account");
+  }
+
   return user;
 };
 
