@@ -63,6 +63,10 @@ const signIn = async (payload: unknown) => {
     throw new UnauthorizedError("Invalid credentials");
   }
 
+  if (!user.isActive) {
+    throw new UnauthorizedError("We've disabled your account");
+  }
+
   const account = await prisma.account.findUnique({
     where: {
       userId: user.id,

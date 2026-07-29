@@ -1,9 +1,4 @@
-import { toggleUserActiveSchema } from "@/dashboard/validation/dashboard";
 import prisma from "@/config/prisma";
-import pagination from "@/shared/utils/pagination";
-import { parseOrThrow } from "@/shared/utils/utils";
-import { NotFoundError } from "http-errors-enhanced";
-import z from "zod";
 
 const THIRTY_DAYS_AGO = () => {
   const date = new Date();
@@ -14,42 +9,38 @@ const THIRTY_DAYS_AGO = () => {
 const getUserDashboard = async (userId: string) => {
   const thirtyDaysAgo = THIRTY_DAYS_AGO();
 
-  const [
-    totalTasks,
-    tasksByStatus,
-    tasksByPriority,
-    recentActivity,
-  ] = await Promise.all([
-    prisma.task.count({
-      where: { creatorId: userId },
-    }),
-    prisma.task.groupBy({
-      by: ["status"],
-      where: { creatorId: userId },
-      _count: { status: true },
-    }),
-    prisma.task.groupBy({
-      by: ["priority"],
-      where: { creatorId: userId },
-      _count: { priority: true },
-    }),
-    prisma.task.findMany({
-      where: {
-        creatorId: userId,
-        createdAt: { gte: thirtyDaysAgo },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 10,
-      select: {
-        id: true,
-        title: true,
-        status: true,
-        priority: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    }),
-  ]);
+  const [totalTasks, tasksByStatus, tasksByPriority, recentActivity] =
+    await Promise.all([
+      prisma.task.count({
+        where: { creatorId: userId },
+      }),
+      prisma.task.groupBy({
+        by: ["status"],
+        where: { creatorId: userId },
+        _count: { status: true },
+      }),
+      prisma.task.groupBy({
+        by: ["priority"],
+        where: { creatorId: userId },
+        _count: { priority: true },
+      }),
+      prisma.task.findMany({
+        where: {
+          creatorId: userId,
+          createdAt: { gte: thirtyDaysAgo },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          priority: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      }),
+    ]);
 
   const statusCounts = {
     TODO: 0,
@@ -180,109 +171,9 @@ const getAdminDashboard = async () => {
   };
 };
 
-const listUsers = async (query: Record<string, string>) => {
-  const params = parseOrThrow(
-    z.object({
-      page: z.string().optional(),
-      limit: z.string().optional(),
-      search: z.string().optional(),
-    }),
-    query,
-  );
-
-  const { page, limit, skip } = pagination.getPaginationParams({
-    page: params.page ?? "",
-    limit: params.limit ?? "",
-  });
-
-  const where = params.search?.trim()
-    ? {
-        OR: [
-          { name: { contains: params.search.trim(), mode: "insensitive" as const } },
-          { email: { contains: params.search.trim(), mode: "insensitive" as const } },
-        ],
-      }
-    : {};
-
-  const [users, total] = await Promise.all([
-    prisma.user.findMany({
-      where,
-      skip,
-      take: limit,
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        isActive: true,
-        createdAt: true,
-        _count: {
-          select: { tasks: true },
-        },
-      },
-    }),
-    prisma.user.count({ where }),
-  ]);
-
-  const paginationMeta = pagination.getPaginationMeta(total, page, limit);
-
-  return {
-    users,
-    pagination: paginationMeta,
-  };
-};
-
-const toggleUserActive = async (userId: string, payload: unknown) => {
-  const { isActive } = parseOrThrow(toggleUserActiveSchema, payload);
-
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { id: true },
-  });
-
-  if (!user) {
-    throw new NotFoundError("User not found");
-  }
-
-  const updatedUser = await prisma.user.update({
-    where: { id: userId },
-    data: { isActive },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      isActive: true,
-    },
-  });
-
-  return updatedUser;
-};
-
-const deleteUser = async (userId: string) => {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { id: true },
-  });
-
-  if (!user) {
-    throw new NotFoundError("User not found");
-  }
-
-  await prisma.user.delete({
-    where: { id: userId },
-  });
-
-  return { message: "User deleted successfully" };
-};
-
 const services = {
   getUserDashboard,
   getAdminDashboard,
-  listUsers,
-  toggleUserActive,
-  deleteUser,
 };
 
 export default services;

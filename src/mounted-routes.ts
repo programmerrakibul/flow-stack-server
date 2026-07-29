@@ -6,6 +6,7 @@ import dashboardRouter from "@/dashboard/routes/dashboard";
 import sendResponse from "@/modules/shared/utils/send-response";
 import { globalErrorHandler } from "@/shared/middlewares/global-error-handler";
 import taskRouter from "@/task/routes/task";
+import userRouter from "@/user/routes/user";
 
 const API_PREFIX = "/api/v1" as const;
 
@@ -17,6 +18,7 @@ const mountedRoutes = (app: Express) => {
   });
 
   app.use(`${API_PREFIX}/auth`, authRouter);
+  app.use(`${API_PREFIX}/users`, userRouter);
   app.use(`${API_PREFIX}/tasks`, taskRouter);
   app.use(`${API_PREFIX}/dashboard`, dashboardRouter);
 
